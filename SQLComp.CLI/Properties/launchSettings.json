@@ -2,7 +2,7 @@
   "profiles": {
     "SQLComp.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "-t \"C:\\Users\\kris7\\OneDrive\\Company Work\\Helvion\\LINK\\sqlcompare\\ComparisonFiles\\AccTransactionHeader.json\" -f"
+      "commandLineArgs": "-t \"C:\\Users\\kris7\\OneDrive\\Company Work\\Helvion\\LINK\\sqlcompare\\ComparisonFiles\\AccChargeCode.json\" -f"
     }
   }
 }

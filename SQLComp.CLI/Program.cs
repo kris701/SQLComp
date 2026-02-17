@@ -43,7 +43,7 @@ internal class Program
 				var targetColumns = new List<string>();
 				targetColumns.Add(def.Target.PkColumn);
 				var targetValues = new List<string>();
-				targetValues.Add(pk);
+				targetValues.Add($"'{pk}'");
 				foreach (var check in def.Checks)
 				{
 					if (check is CompareCheck comp)
