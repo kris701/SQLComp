@@ -11,7 +11,7 @@ namespace SQLComp
 	}
 
 	public delegate void OnCompareEngineLogHandler(string logTxt, LogType type);
-	public delegate void OnCompareEngineCheckFalseHandler(string logTxt, string pk, Dictionary<string, string?> source, Dictionary<string, string?>? target);
+	public delegate void OnCompareEngineCheckFalseHandler(string logTxt, string pk, string?[] sourceData, Dictionary<string, int> sourceColumnMap, string?[]? targetData, Dictionary<string, int>? targetColumnMap);
 
 	public interface ICompareEngine
 	{

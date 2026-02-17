@@ -6,7 +6,7 @@ namespace SQLComp.Models.Checks
 	[JsonDerivedType(typeof(ExcistsCheck), typeDiscriminator: nameof(ExcistsCheck))]
 	public interface ICheck
 	{
-		public bool Check(Dictionary<string, string?> sourceData, Dictionary<string, string?>? targetData);
+		public bool Check(string?[] sourceData, Dictionary<string, int> sourceColumnMap, string?[]? targetData, Dictionary<string, int>? targetColumnMap);
 		public string GetDescription();
 		public List<string> GetSourceColumns();
 		public List<string> GetTargetColumns();

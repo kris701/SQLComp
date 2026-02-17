@@ -35,9 +35,9 @@ internal class Program
 		var engine = new CompareEngine();
 		engine.FastCheck = opts.DoCheck;
 		engine.OnLog += (l, t) => WriteLineColor(l, t);
-		engine.OnCheckFalse += (l, pk, s, t) =>
+		engine.OnCheckFalse += (l, pk, s, sm, t, tm) =>
 		{
-			WriteLineColor(l, LogType.Warning);
+			WriteLineColor($"\t{l}", LogType.Warning);
 			if (t == null)
 			{
 				var targetColumns = new List<string>();
@@ -49,7 +49,7 @@ internal class Program
 					if (check is CompareCheck comp)
 					{
 						targetColumns.Add(comp.Target);
-						var value = s[comp.Source];
+						var value = s[sm[comp.Source]];
 						if (value == null)
 							targetValues.Add("NULL");
 						else
@@ -63,9 +63,9 @@ internal class Program
 				var targetValues = new List<string>();
 				foreach (var check in def.Checks)
 				{
-					if (check is CompareCheck comp && !comp.Check(s, t))
+					if (check is CompareCheck comp && !comp.Check(s, sm, t, tm))
 					{
-						var value = s[comp.Source];
+						var value = s[sm[comp.Source]];
 						if (value == null)
 							value = "NULL";
 						else

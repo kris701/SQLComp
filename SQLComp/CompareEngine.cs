@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using SQLComp.Models;
 using SQLComp.Models.Transformers;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Text;
 
@@ -24,35 +25,35 @@ namespace SQLComp
 			}
 
 			OnLog?.Invoke("Fetching source data...", LogType.Info);
-			var sourceData = await ExecuteSQL(BuildQuery(model.Source, sourceColumns), model.Source.ConnectionString, model.Transformers);
-			OnLog?.Invoke($"\tA total of {sourceData.Count} rows to evaluate", LogType.Info);
+			var sourceData = await ExecuteSQL(BuildQuery(model.Source, sourceColumns), model.Source.ConnectionString, sourceColumns, model.Transformers, model.Source.PkColumn);
+			OnLog?.Invoke($"\tA total of {sourceData.Data.Count} rows to evaluate", LogType.Info);
 			OnLog?.Invoke("Fetching target data...", LogType.Info);
-			var targetData = await ExecuteSQL(BuildQuery(model.Target, targetColumns), model.Target.ConnectionString, model.Transformers);
-			OnLog?.Invoke($"\tA total of {targetData.Count} rows to evaluate", LogType.Info);
+			var targetData = await ExecuteSQL(BuildQuery(model.Target, targetColumns), model.Target.ConnectionString, targetColumns, model.Transformers, model.Target.PkColumn);
+			OnLog?.Invoke($"\tA total of {targetData.Data.Count} rows to evaluate", LogType.Info);
 
-			OnLog?.Invoke($"A total of {model.Checks.Count} checks to perform against {sourceData.Count} source rows", LogType.Info);
+			OnLog?.Invoke($"A total of {model.Checks.Count} checks to perform against {sourceData.Data.Count} source rows", LogType.Info);
 			OnLog?.Invoke("Comparing data...", LogType.Info);
 			var any = false;
 			var counter = 0;
 			var watch = new Stopwatch();
 			watch.Start();
-			foreach (var item in sourceData.Keys)
+			foreach (var item in sourceData.Data.Keys)
 			{
 				foreach (var check in model.Checks)
 				{
-					Dictionary<string, string?>? target = null;
-					targetData.TryGetValue(item, out target);
-					if (!check.Check(sourceData[item], target))
+					string?[]? target = null;
+					targetData.Data.TryGetValue(item, out target);
+					if (!check.Check(sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap))
 					{
 						any = true;
-						OnCheckFalse?.Invoke($"[S:{item}]" + check.GetDescription(), item, sourceData[item], target);
+						OnCheckFalse?.Invoke($"[S:{item}]" + check.GetDescription(), item, sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap);
 						break;
 					}
 				}
 				counter++;
 				if (watch.ElapsedMilliseconds > 1000)
 				{
-					OnLog?.Invoke($"\tChecked {counter} out of {sourceData.Count}", LogType.Info);
+					OnLog?.Invoke($"\tChecked {counter} out of {sourceData.Data.Count}", LogType.Info);
 					watch.Restart();
 				}
 			}
@@ -97,9 +98,13 @@ namespace SQLComp
 			return sb.ToString();
 		}
 
-		private async Task<Dictionary<string, Dictionary<string, string?>>> ExecuteSQL(string query, string connectionString, List<ITransformer> transformers)
+		private async Task<DataModel> ExecuteSQL(string query, string connectionString, List<string> columns, List<ITransformer> transformers, string pkColumn)
 		{
-			var returnData = new Dictionary<string, Dictionary<string, string?>>();
+			var returnData = new DataModel();
+
+			var index = 0;
+			foreach (var col in columns)
+				returnData.ColumnMap.Add(col, index++);
 
 			OnLog?.Invoke("\tExecuting query...", LogType.Info);
 			using (var connection = new SqlConnection(connectionString))
@@ -113,20 +118,22 @@ namespace SQLComp
 				OnLog?.Invoke("\tParsing result...", LogType.Info);
 				while (reader.Read())
 				{
-					var pkColumn = reader[0]?.ToString();
-					if (pkColumn != null && !returnData.ContainsKey(pkColumn))
+					string? pkValue = null;
+					var newRow = new string?[columns.Count];
+					for (int i = 0; i < reader.FieldCount; i++)
 					{
-						returnData.Add(pkColumn, new Dictionary<string, string?>());
-						for (int i = 1; i < reader.FieldCount; i++)
-						{
-							var name = reader.GetName(i);
-							var data = reader[i]?.ToString();
-							foreach (var transformer in transformers)
-								data = transformer.Transform(data);
+						var name = reader.GetName(i);
+						var data = reader[i]?.ToString();
+						foreach (var transformer in transformers)
+							data = transformer.Transform(data);
 
-							returnData[pkColumn].Add(name, data);
-						}
+						if (name == pkColumn)
+							pkValue = data;
+						else
+							newRow[returnData.ColumnMap[name]] = data;
 					}
+					if (pkValue != null)
+						returnData.Data.Add(pkValue, newRow);
 				}
 				reader.Close();
 			}

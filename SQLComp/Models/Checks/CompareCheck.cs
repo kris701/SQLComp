@@ -11,15 +11,17 @@
 		public string Source { get; set; }
 		public string Target { get; set; }
 
-		public bool Check(Dictionary<string, string?> sourceData, Dictionary<string, string?>? targetData)
+		public bool Check(string?[] sourceData, Dictionary<string, int> sourceColumnMap, string?[]? targetData, Dictionary<string, int>? targetColumnMap)
 		{
-			if (targetData == null)
+			if (targetData == null || targetColumnMap == null)
 				return false;
-			string? source = null;
-			sourceData.TryGetValue(Source, out source);
-			string? target = null;
-			targetData.TryGetValue(Target, out target);
-			return source == target;
+			var sourceIndex = -1;
+			sourceColumnMap.TryGetValue(Source, out sourceIndex);
+			var targetIndex = -1;
+			targetColumnMap.TryGetValue(Source, out targetIndex);
+			if (sourceIndex == -1 || targetIndex == -1)
+				return false;
+			return sourceData[sourceIndex] == targetData[targetIndex];
 		}
 
 		public string GetDescription() => $"The source column '{Source}' must be equal to '{Target}'";
