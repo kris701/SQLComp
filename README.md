@@ -22,7 +22,7 @@ sqlcomp [-t|--target <PATH>] [-o|--output] [-f|--force]
 * `-o|--output` the output SQL patch file.
 * `-f|--force` if the program should delete an existing patch file.
 
-This can be found as a package on the [NuGet Package Manager](https://www.nuget.org/packages/SQLComp/) or be installed by the command:
+This can be found as a package on the [NuGet Package Manager](https://www.nuget.org/packages/SQLComp.CLI/) or be installed by the command:
 ```
 dotnet tool install SQLComp.CLI
 ```
