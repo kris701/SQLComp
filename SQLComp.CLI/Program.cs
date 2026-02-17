@@ -77,7 +77,6 @@ internal class Program
 
 	private static void WriteLineColor(string log, LogType type)
 	{
-		Console.ResetColor();
 		switch (type)
 		{
 			case LogType.Info:
@@ -94,6 +93,7 @@ internal class Program
 				break;
 		}
 		Console.WriteLine(log);
+		Console.ResetColor();
 	}
 
 	private static void DisplayHelp<T>(ParserResult<T> result, IEnumerable<Error> errs)
