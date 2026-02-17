@@ -4,8 +4,8 @@
 </p>
 
 [![Build and Publish](https://github.com/kris701/SQLComp/actions/workflows/dotnet-desktop.yml/badge.svg)](https://github.com/kris701/SQLComp/actions/workflows/dotnet-desktop.yml)
-![Nuget](https://img.shields.io/nuget/v/SQLComp)
-![Nuget](https://img.shields.io/nuget/dt/SQLComp)
+![Nuget](https://img.shields.io/nuget/v/SQLComp.CLI)
+![Nuget](https://img.shields.io/nuget/dt/SQLComp.CLI)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/kris701/SQLComp/main)
 ![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/m/kris701/SQLComp)
 ![Static Badge](https://img.shields.io/badge/Platform-Windows-blue)
@@ -24,5 +24,5 @@ sqlcomp [-t|--target <PATH>] [-o|--output] [-f|--force]
 
 This can be found as a package on the [NuGet Package Manager](https://www.nuget.org/packages/SQLComp/) or be installed by the command:
 ```
-dotnet tool install SQLComp
+dotnet tool install SQLComp.CLI
 ```
