@@ -98,7 +98,10 @@ namespace SQLComp
 
 			using (var connection = new SqlConnection(connectionString))
 			{
-				var command = new SqlCommand(query, connection);
+				var command = new SqlCommand(query, connection)
+				{
+					CommandTimeout = 999999
+				};
 				connection.Open();
 				var reader = await command.ExecuteReaderAsync();
 				while (reader.Read())
