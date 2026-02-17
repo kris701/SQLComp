@@ -30,6 +30,8 @@ internal class Program
 		else
 			File.WriteAllText(opts.OutputPath, $"-- Run '{opts.TargetPath}'" + Environment.NewLine);
 
+		WriteLineColor("Starting compare check on " + opts.TargetPath, LogType.Info);
+
 		var engine = new CompareEngine();
 		engine.FastCheck = opts.DoCheck;
 		engine.OnLog += (l, t) => WriteLineColor(l, t);

@@ -45,6 +45,8 @@ namespace SQLComp
 					if (!check.Check(sourceData[item], target))
 					{
 						any = true;
+						if (FastCheck)
+							break;
 						OnCheckFalse?.Invoke($"[S:{item}]" + check.GetDescription(), item, sourceData[item], target);
 					}
 				}

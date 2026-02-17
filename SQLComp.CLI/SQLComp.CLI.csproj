@@ -25,7 +25,7 @@
 
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-		<Version>1.0.4</Version>
+		<Version>1.0.5</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -49,14 +49,5 @@
 	<ItemGroup>
 		<None Include="logo.png" Pack="true" PackagePath="" />
 	</ItemGroup>
-
-  <ItemGroup>
-    <None Update="TestFiles\JobConsol.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestFiles\GlbBranch.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 
 </Project>
