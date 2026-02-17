@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SQLComp.CLI/SQLComp.CLI.csproj" />
+  <Project Path="SQLComp/SQLComp.csproj" />
+</Solution>
