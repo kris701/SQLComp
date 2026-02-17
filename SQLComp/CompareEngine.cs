@@ -102,6 +102,7 @@ namespace SQLComp
 		{
 			var returnData = new Dictionary<string, Dictionary<string, string?>>();
 
+			OnLog?.Invoke("\tExecuting query...", LogType.Info);
 			using (var connection = new SqlConnection(connectionString))
 			{
 				var command = new SqlCommand(query, connection)
@@ -110,6 +111,7 @@ namespace SQLComp
 				};
 				connection.Open();
 				var reader = await command.ExecuteReaderAsync();
+				OnLog?.Invoke("\tParsing result...", LogType.Info);
 				while (reader.Read())
 				{
 					var pkColumn = reader[0]?.ToString();
