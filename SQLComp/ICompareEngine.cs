@@ -18,6 +18,8 @@ namespace SQLComp
 		public event OnCompareEngineLogHandler? OnLog;
 		public event OnCompareEngineCheckFalseHandler? OnCheckFalse;
 
+		public bool FastCheck { get; set; }
+
 		public Task Compare(TableCompareDefinition model);
 	}
 }

@@ -11,6 +11,8 @@ namespace SQLComp
 		public event OnCompareEngineLogHandler? OnLog;
 		public event OnCompareEngineCheckFalseHandler? OnCheckFalse;
 
+		public bool FastCheck { get; set; } = false;
+
 		public async Task Compare(TableCompareDefinition model)
 		{
 			var sourceColumns = new List<string>();
@@ -69,6 +71,8 @@ namespace SQLComp
 				columns.Insert(0, def.PkColumn);
 
 			sb.Append("SELECT ");
+			if (FastCheck)
+				sb.Append("TOP(10) ");
 			var counter = 1;
 			foreach (var column in columns)
 			{

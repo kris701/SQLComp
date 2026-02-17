@@ -31,6 +31,7 @@ internal class Program
 			File.WriteAllText(opts.OutputPath, $"-- Run '{opts.TargetPath}'" + Environment.NewLine);
 
 		var engine = new CompareEngine();
+		engine.FastCheck = opts.DoCheck;
 		engine.OnLog += (l, t) => WriteLineColor(l, t);
 		engine.OnCheckFalse += (l, pk, s, t) =>
 		{

@@ -2,7 +2,7 @@
   "profiles": {
     "SQLComp.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "-t TestFiles/JobConsol.json"
+      "commandLineArgs": "-t TestFiles/JobConsol.json -c"
     }
   }
 }

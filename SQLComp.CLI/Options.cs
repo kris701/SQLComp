@@ -10,5 +10,7 @@ namespace SQLComp.CLI
 		public string OutputPath { get; set; } = "";
 		[Option('f', "force", Required = false, HelpText = "Force remove existing patch file", Default = false)]
 		public bool ForceRemovePatchFile { get; set; } = false;
+		[Option('c', "check", Required = false, HelpText = "Select only the top 10 rows (this is just for testing you made the correct syntax)", Default = false)]
+		public bool DoCheck { get; set; } = false;
 	}
 }
