@@ -63,7 +63,7 @@ internal class Program
 				var targetValues = new List<string>();
 				foreach (var check in def.Checks)
 				{
-					if (check is CompareCheck comp && !comp.Check(s, sm, t, tm))
+					if (check is CompareCheck comp && !comp.Check(s, t))
 					{
 						var value = s[sm[comp.Source]];
 						if (value == null)

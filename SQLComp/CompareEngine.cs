@@ -31,6 +31,9 @@ namespace SQLComp
 			var targetData = await ExecuteSQL(BuildQuery(model.Target, targetColumns), model.Target.ConnectionString, targetColumns, model.Transformers, model.Target.PkColumn);
 			OnLog?.Invoke($"\tA total of {targetData.Data.Count} rows to evaluate", LogType.Info);
 
+			foreach (var check in model.Checks)
+				check.Initialize(sourceData.ColumnMap, targetData.ColumnMap);
+
 			OnLog?.Invoke($"A total of {model.Checks.Count} checks to perform against {sourceData.Data.Count} source rows", LogType.Info);
 			OnLog?.Invoke("Comparing data...", LogType.Info);
 			var any = false;
@@ -43,7 +46,7 @@ namespace SQLComp
 				{
 					string?[]? target = null;
 					targetData.Data.TryGetValue(item, out target);
-					if (!check.Check(sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap))
+					if (!check.Check(sourceData.Data[item], target))
 					{
 						any = true;
 						OnCheckFalse?.Invoke($"[S:{item}]" + check.GetDescription(), item, sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap);
@@ -123,14 +126,17 @@ namespace SQLComp
 					for (int i = 0; i < reader.FieldCount; i++)
 					{
 						var name = reader.GetName(i);
-						var data = reader[i]?.ToString();
+						var data = reader[i];
+						string? dataStr = null;
+						if (data != null)
+							dataStr = data.ToString();
 						foreach (var transformer in transformers)
-							data = transformer.Transform(data);
+							dataStr = transformer.Transform(dataStr);
 
 						if (name == pkColumn)
-							pkValue = data;
+							pkValue = dataStr;
 						else
-							newRow[returnData.ColumnMap[name]] = data;
+							newRow[returnData.ColumnMap[name]] = dataStr;
 					}
 					if (pkValue != null)
 						returnData.Data.Add(pkValue, newRow);
