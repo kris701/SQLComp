@@ -2,7 +2,7 @@
   "profiles": {
     "SQLComp.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "-t \"C:\\Users\\kris7\\OneDrive\\Company Work\\Helvion\\LINK\\sqlcompare\\ComparisonFiles\\AccTransactionHeader.json\" -f"
+      "commandLineArgs": "-t \"C:\\Users\\kris7\\OneDrive\\Company Work\\Helvion\\LINK\\sqlcompare\\ComparisonFiles\\AccTransactionLines.json\" -f -c -p \"(\\d{2})\\/(\\d{2})\\/(\\d{4}) (\\d{2})\\.(\\d{2})\\.(\\d{2});;;$3-$2-$1T$4:$5:$6\""
     }
   }
 }

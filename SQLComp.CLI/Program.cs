@@ -5,6 +5,7 @@ using SQLComp.CLI;
 using SQLComp.Models;
 using SQLComp.Models.Checks;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 internal class Program
 {
@@ -56,7 +57,13 @@ internal class Program
 							targetValues.Add($"'{value}'");
 					}
 				}
-				File.AppendAllText(opts.OutputPath, $"INSERT INTO {def.Target.Table} ({string.Join(',', targetColumns)}) VALUES ({string.Join(',', targetValues)})" + Environment.NewLine);
+				var text = $"INSERT INTO {def.Target.Table} ({string.Join(',', targetColumns)}) VALUES ({string.Join(',', targetValues)})" + Environment.NewLine;
+				foreach(var replaceRegex in opts.PatchRegexes)
+				{
+					var split = replaceRegex.Split(";;;");
+					text = Replace(text, split[0], split[1]);
+				}
+				File.AppendAllText(opts.OutputPath, text);
 			}
 			else
 			{
@@ -73,7 +80,13 @@ internal class Program
 						targetValues.Add($"{comp.Target} = {value}");
 					}
 				}
-				File.AppendAllText(opts.OutputPath, $"UPDATE {def.Target.Table} SET {string.Join(',', targetValues)} WHERE {def.Target.PkColumn} = '{pk}'" + Environment.NewLine);
+				var text = $"UPDATE {def.Target.Table} SET {string.Join(',', targetValues)} WHERE {def.Target.PkColumn} = '{pk}'" + Environment.NewLine;
+				foreach (var replaceRegex in opts.PatchRegexes)
+				{
+					var split = replaceRegex.Split(";;;");
+					text = Replace(text, split[0], split[1]);
+				}
+				File.AppendAllText(opts.OutputPath, text);
 			}
 		};
 		await engine.Compare(def);
@@ -118,5 +131,10 @@ internal class Program
 		foreach (var error in errs)
 			if (error is not HelpRequestedError)
 				Console.WriteLine(sentenceBuilder.FormatError(error));
+	}
+
+	private static string Replace(string text, string regex, string replaceRegex)
+	{
+		return Regex.Replace(text, regex, replaceRegex);
 	}
 }

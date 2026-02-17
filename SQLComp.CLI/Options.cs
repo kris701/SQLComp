@@ -12,5 +12,7 @@ namespace SQLComp.CLI
 		public bool ForceRemovePatchFile { get; set; } = false;
 		[Option('c', "check", Required = false, HelpText = "Select only the top 10 rows (this is just for testing you made the correct syntax)", Default = false)]
 		public bool DoCheck { get; set; } = false;
+		[Option('p', "patchreg", Required = false, HelpText = "Set of patch regex replacements to execute (MATCH;;;REPLACE)", Default = false)]
+		public IEnumerable<string> PatchRegexes { get; set; } = new List<string>();
 	}
 }
