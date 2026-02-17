@@ -5,8 +5,16 @@ using System.Text;
 
 namespace SQLComp
 {
-	public delegate void OnCompareEngineLogHandler(string logTxt);
-	public delegate void OnCompareEngineCheckFalseHandler(string logTxt, Dictionary<string, string?> source, Dictionary<string, string?>? target);
+	public enum LogType
+	{
+		Info,
+		Success,
+		Warning,
+		Error
+	}
+
+	public delegate void OnCompareEngineLogHandler(string logTxt, LogType type);
+	public delegate void OnCompareEngineCheckFalseHandler(string logTxt, string pk, Dictionary<string, string?> source, Dictionary<string, string?>? target);
 
 	public interface ICompareEngine
 	{

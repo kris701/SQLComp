@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE.txt" />
+    <File Path="README.md" />
+  </Folder>
   <Project Path="SQLComp.CLI/SQLComp.CLI.csproj" />
   <Project Path="SQLComp/SQLComp.csproj" />
 </Solution>

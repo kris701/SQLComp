@@ -1,7 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
 using SQLComp.Models;
+using SQLComp.Models.Transformers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace SQLComp
@@ -21,15 +23,19 @@ namespace SQLComp
 				targetColumns.AddRange(check.GetTargetColumns());
 			}
 
-			OnLog?.Invoke("Fetching source data...");
-			var sourceData = await ExecuteSQL(BuildQuery(model.Source, sourceColumns), model.Source.ConnectionString);
-			OnLog?.Invoke($"\tA total of {sourceData.Count} rows to evaluate");
-			OnLog?.Invoke("Fetching target data...");
-			var targetData = await ExecuteSQL(BuildQuery(model.Target, targetColumns), model.Target.ConnectionString);
-			OnLog?.Invoke($"\tA total of {targetData.Count} rows to evaluate");
+			OnLog?.Invoke("Fetching source data...", LogType.Info);
+			var sourceData = await ExecuteSQL(BuildQuery(model.Source, sourceColumns), model.Source.ConnectionString, model.Transformers);
+			OnLog?.Invoke($"\tA total of {sourceData.Count} rows to evaluate", LogType.Info);
+			OnLog?.Invoke("Fetching target data...", LogType.Info);
+			var targetData = await ExecuteSQL(BuildQuery(model.Target, targetColumns), model.Target.ConnectionString, model.Transformers);
+			OnLog?.Invoke($"\tA total of {targetData.Count} rows to evaluate", LogType.Info);
 
-			OnLog?.Invoke($"A total of {model.Checks.Count} checks to perform against {sourceData.Count} source rows");
-			OnLog?.Invoke("Comparing data...");
+			OnLog?.Invoke($"A total of {model.Checks.Count} checks to perform against {sourceData.Count} source rows", LogType.Info);
+			OnLog?.Invoke("Comparing data...", LogType.Info);
+			var any = false;
+			var counter = 0;
+			var watch = new Stopwatch();
+			watch.Start();
 			foreach (var item in sourceData.Keys)
 			{
 				foreach(var check in model.Checks)
@@ -37,9 +43,24 @@ namespace SQLComp
 					Dictionary<string, string?>? target = null;
 					targetData.TryGetValue(item, out target);
 					if (!check.Check(sourceData[item], target))
-						OnCheckFalse?.Invoke(check.GetDescription(), sourceData[item], target);
+					{
+						any = true;
+						OnCheckFalse?.Invoke($"[S:{item}]" + check.GetDescription(), item, sourceData[item], target);
+					}
+				}
+				counter++;
+				if (watch.ElapsedMilliseconds > 1000)
+				{
+					OnLog?.Invoke($"\tChecked {counter} out of {sourceData.Count}", LogType.Info);
+					watch.Restart();
 				}
 			}
+			watch.Stop();
+			OnLog?.Invoke("Comparison complete!", LogType.Info);
+			if (any)
+				OnLog?.Invoke("Some data was not equal!", LogType.Error);
+			else
+				OnLog?.Invoke("All data correct!", LogType.Success);
 		}
 
 		private string BuildQuery(DatasourceDefinition def, List<string> columns)
@@ -73,7 +94,7 @@ namespace SQLComp
 			return sb.ToString();
 		}
 
-		private async Task<Dictionary<string, Dictionary<string,string?>>> ExecuteSQL(string query, string connectionString)
+		private async Task<Dictionary<string, Dictionary<string,string?>>> ExecuteSQL(string query, string connectionString, List<ITransformer> transformers)
 		{
 			var returnData = new Dictionary<string, Dictionary<string, string?>>();
 
@@ -92,6 +113,8 @@ namespace SQLComp
 						{
 							var name = reader.GetName(i);
 							var data = reader[i]?.ToString();
+							foreach (var transformer in transformers)
+								data = transformer.Transform(data);
 
 							returnData[pkColumn].Add(name, data);
 						}

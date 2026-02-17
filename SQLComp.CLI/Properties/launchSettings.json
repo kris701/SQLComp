@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SQLComp.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "-t TestFiles/JobConsol.json"
+    }
+  }
+}
