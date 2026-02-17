@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/dotnet-desktop.yml" />
     <File Path=".gitignore" />
     <File Path="LICENSE.txt" />
     <File Path="README.md" />

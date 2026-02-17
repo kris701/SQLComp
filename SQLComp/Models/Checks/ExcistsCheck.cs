@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SQLComp.Models.Checks
+﻿namespace SQLComp.Models.Checks
 {
 	public class ExcistsCheck : ICheck
 	{

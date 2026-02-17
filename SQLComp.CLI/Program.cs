@@ -4,7 +4,6 @@ using SQLComp;
 using SQLComp.CLI;
 using SQLComp.Models;
 using SQLComp.Models.Checks;
-using System.Text;
 using System.Text.Json;
 
 internal class Program

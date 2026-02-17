@@ -1,8 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using SQLComp.Models;
 using SQLComp.Models.Transformers;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
@@ -17,7 +15,7 @@ namespace SQLComp
 		{
 			var sourceColumns = new List<string>();
 			var targetColumns = new List<string>();
-			foreach(var check in model.Checks)
+			foreach (var check in model.Checks)
 			{
 				sourceColumns.AddRange(check.GetSourceColumns());
 				targetColumns.AddRange(check.GetTargetColumns());
@@ -38,7 +36,7 @@ namespace SQLComp
 			watch.Start();
 			foreach (var item in sourceData.Keys)
 			{
-				foreach(var check in model.Checks)
+				foreach (var check in model.Checks)
 				{
 					Dictionary<string, string?>? target = null;
 					targetData.TryGetValue(item, out target);
@@ -79,7 +77,7 @@ namespace SQLComp
 					sb.Append(",");
 			}
 			sb.AppendLine($" FROM {def.Table}");
-			if(def.Where.Count > 0)
+			if (def.Where.Count > 0)
 			{
 				sb.AppendLine(" WHERE ");
 				counter = 1;
@@ -94,7 +92,7 @@ namespace SQLComp
 			return sb.ToString();
 		}
 
-		private async Task<Dictionary<string, Dictionary<string,string?>>> ExecuteSQL(string query, string connectionString, List<ITransformer> transformers)
+		private async Task<Dictionary<string, Dictionary<string, string?>>> ExecuteSQL(string query, string connectionString, List<ITransformer> transformers)
 		{
 			var returnData = new Dictionary<string, Dictionary<string, string?>>();
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SQLComp.Models.Transformers
+﻿namespace SQLComp.Models.Transformers
 {
 	public class ReplaceTransformer : ITransformer
 	{
