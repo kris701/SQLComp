@@ -4,8 +4,10 @@
 </p>
 
 [![Build and Publish](https://github.com/kris701/SQLComp/actions/workflows/dotnet-desktop.yml/badge.svg)](https://github.com/kris701/SQLComp/actions/workflows/dotnet-desktop.yml)
-![Nuget](https://img.shields.io/nuget/v/SQLComp.CLI)
-![Nuget](https://img.shields.io/nuget/dt/SQLComp.CLI)
+![Nuget](https://img.shields.io/nuget/v/SQLComp?label=nuget-package)
+![Nuget](https://img.shields.io/nuget/dt/SQLComp?label=nuget-package-downloads)
+![Nuget](https://img.shields.io/nuget/v/SQLComp.CLI?label=nuget-cli)
+![Nuget](https://img.shields.io/nuget/dt/SQLComp.CLI?label=nuget-cli-downloads)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/kris701/SQLComp/main)
 ![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/m/kris701/SQLComp)
 ![Static Badge](https://img.shields.io/badge/Platform-Windows-blue)
