@@ -14,7 +14,12 @@
 
 # SQLComp
 This is a simple little dotnet tool to compare tables between two SQL Server databases.
+You can either use this as a package or a CLI tool.
 
+## Package
+You can find the package at the [NuGet Package Manager](https://www.nuget.org/packages/SQLComp/)
+
+## CLI Tool
 ```
 sqlcomp [-t|--target <PATH>] [-o|--output] [-f|--force]
 ```
