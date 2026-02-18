@@ -4,8 +4,10 @@ using SQLComp;
 using SQLComp.CLI;
 using SQLComp.Models;
 using SQLComp.Models.Checks;
+using SQLComp.Models.Transformers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 internal class Program
 {
@@ -23,6 +25,13 @@ internal class Program
 		if (def == null)
 			throw new Exception("Cannot parse comparison file!");
 
+		var queryTransformers = new List<ITransformer>();
+		foreach (var replaceRegex in opts.PatchRegexes)
+		{
+			var split = replaceRegex.Split(";;;");
+			queryTransformers.Add(new RegexReplaceTransformer() { Match = split[0], Substitution = split[1] });
+		}
+
 		if (opts.ForceRemovePatchFile && File.Exists(opts.OutputPath))
 			File.Delete(opts.OutputPath);
 
@@ -33,63 +42,16 @@ internal class Program
 
 		WriteLineColor("Starting compare check on " + opts.TargetPath, LogType.Info);
 
-		var engine = new CompareEngine();
-		engine.FastCheck = opts.DoCheck;
-		engine.OnLog += (l, t) => WriteLineColor(l, t);
-		engine.OnCheckFalse += (l, pk, s, sm, t, tm) =>
-		{
-			WriteLineColor($"\t{l}", LogType.Warning);
-			if (t == null)
-			{
-				var targetColumns = new List<string>();
-				targetColumns.Add(def.Target.PkColumn);
-				var targetValues = new List<string>();
-				targetValues.Add($"'{pk}'");
-				foreach (var check in def.Checks)
-				{
-					if (check is CompareCheck comp)
-					{
-						targetColumns.Add(comp.Target);
-						var value = s[sm[comp.Source]];
-						if (value == null)
-							targetValues.Add("NULL");
-						else
-							targetValues.Add($"'{value}'");
-					}
-				}
-				var text = $"INSERT INTO {def.Target.Table} ({string.Join(',', targetColumns)}) VALUES ({string.Join(',', targetValues)})" + Environment.NewLine;
-				foreach(var replaceRegex in opts.PatchRegexes)
-				{
-					var split = replaceRegex.Split(";;;");
-					text = Replace(text, split[0], split[1]);
-				}
-				File.AppendAllText(opts.OutputPath, text);
-			}
-			else
-			{
-				var targetValues = new List<string>();
-				foreach (var check in def.Checks)
-				{
-					if (check is CompareCheck comp && !comp.Check(s, t))
-					{
-						var value = s[sm[comp.Source]];
-						if (value == null)
-							value = "NULL";
-						else
-							value = $"'{value}'";
-						targetValues.Add($"{comp.Target} = {value}");
-					}
-				}
-				var text = $"UPDATE {def.Target.Table} SET {string.Join(',', targetValues)} WHERE {def.Target.PkColumn} = '{pk}'" + Environment.NewLine;
-				foreach (var replaceRegex in opts.PatchRegexes)
-				{
-					var split = replaceRegex.Split(";;;");
-					text = Replace(text, split[0], split[1]);
-				}
-				File.AppendAllText(opts.OutputPath, text);
-			}
+		var engine = new CompareEngine() { 
+			FastCheck = opts.DoCheck,
+			FetchRetry = opts.RetryTimes
 		};
-		await engine.Compare(def);
+		engine.OnLog += (l, t) => WriteLineColor(l, t);
+		engine.OnCheckFalse += (i) => WriteLineColor($"\t{i.Reason}", LogType.Warning);
+		var result = await engine.Compare(def);
+		var builder = new PatchBuilder() { Transformers = queryTransformers };
+		var patch = builder.Build(result, def);
+		File.AppendAllText(opts.OutputPath, patch);
 		WriteLineColor("Comparison complete!", LogType.Info);
 	}
 
@@ -131,10 +93,5 @@ internal class Program
 		foreach (var error in errs)
 			if (error is not HelpRequestedError)
 				Console.WriteLine(sentenceBuilder.FormatError(error));
-	}
-
-	private static string Replace(string text, string regex, string replaceRegex)
-	{
-		return Regex.Replace(text, regex, replaceRegex);
 	}
 }

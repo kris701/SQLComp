@@ -24,6 +24,7 @@ sqlcomp [-t|--target <PATH>] [-o|--output] [-f|--force]
 * `-c|--check` do the run with a `TOP(10)` addition to the query, so you can check if the input file is valid
 * `-p|--patchreg` a set of regex replacements to perform to the SQL patch file.
     * It is in the format "MATCH;;;REPLACEMENT". Where the first regex is used for capturing data, and the other regex supports [substitutions](https://learn.microsoft.com/en-us/dotnet/standard/base-types/substitutions-in-regular-expressions).
+* `-r|--retry` how many times the tool should retry to fetch data, if something fails.
 
 This can be found as a package on the [NuGet Package Manager](https://www.nuget.org/packages/SQLComp.CLI/) or be installed by the command:
 ```

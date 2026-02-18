@@ -14,5 +14,7 @@ namespace SQLComp.CLI
 		public bool DoCheck { get; set; } = false;
 		[Option('p', "patchreg", Required = false, HelpText = "Set of patch regex replacements to execute (MATCH;;;REPLACE)", Default = false)]
 		public IEnumerable<string> PatchRegexes { get; set; } = new List<string>();
+		[Option('r', "retry", Required = false, HelpText = "How many times the system should retry to get data if something fails", Default = 0)]
+		public uint RetryTimes { get; set; } = 0;
 	}
 }

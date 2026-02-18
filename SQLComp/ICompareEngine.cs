@@ -1,4 +1,5 @@
 ﻿using SQLComp.Models;
+using SQLComp.Models.Results;
 
 namespace SQLComp
 {
@@ -11,7 +12,7 @@ namespace SQLComp
 	}
 
 	public delegate void OnCompareEngineLogHandler(string logTxt, LogType type);
-	public delegate void OnCompareEngineCheckFalseHandler(string logTxt, string pk, string?[] sourceData, Dictionary<string, int> sourceColumnMap, string?[]? targetData, Dictionary<string, int>? targetColumnMap);
+	public delegate void OnCompareEngineCheckFalseHandler(ComparisonIssue issue);
 
 	public interface ICompareEngine
 	{
@@ -19,7 +20,8 @@ namespace SQLComp
 		public event OnCompareEngineCheckFalseHandler? OnCheckFalse;
 
 		public bool FastCheck { get; set; }
+		public uint FetchRetry { get; set; }
 
-		public Task Compare(TableCompareDefinition model);
+		public Task<ComparisonResult> Compare(TableCompareDefinition model);
 	}
 }

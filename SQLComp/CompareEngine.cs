@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using SQLComp.Models;
+using SQLComp.Models.Results;
 using SQLComp.Models.Transformers;
 using System.Data.Common;
 using System.Diagnostics;
@@ -13,9 +14,12 @@ namespace SQLComp
 		public event OnCompareEngineCheckFalseHandler? OnCheckFalse;
 
 		public bool FastCheck { get; set; } = false;
+		public uint FetchRetry { get; set; } = 0;
 
-		public async Task Compare(TableCompareDefinition model)
+		public async Task<ComparisonResult> Compare(TableCompareDefinition model)
 		{
+			var result = new ComparisonResult();
+
 			var sourceColumns = new List<string>();
 			var targetColumns = new List<string>();
 			foreach (var check in model.Checks)
@@ -25,10 +29,17 @@ namespace SQLComp
 			}
 
 			OnLog?.Invoke("Fetching source data...", LogType.Info);
-			var sourceData = await ExecuteSQL(BuildQuery(model.Source, sourceColumns), model.Source.ConnectionString, sourceColumns, model.Transformers, model.Source.PkColumn);
+			var sourceEstimationQuery = BuildEstimationQuery(model.Source);
+			var estimatedSourceRows = await GetEstimatedRowCount(sourceEstimationQuery, model.Source.ConnectionString);
+			var sourceFetchQuery = BuildFetchQuery(model.Source, sourceColumns);
+			var sourceData = await FetchData(sourceFetchQuery, model.Source.ConnectionString, sourceColumns, model.Transformers, model.Source.PkColumn, estimatedSourceRows);
 			OnLog?.Invoke($"\tA total of {sourceData.Data.Count} rows to evaluate", LogType.Info);
+
 			OnLog?.Invoke("Fetching target data...", LogType.Info);
-			var targetData = await ExecuteSQL(BuildQuery(model.Target, targetColumns), model.Target.ConnectionString, targetColumns, model.Transformers, model.Target.PkColumn);
+			var targetEstimationQuery = BuildEstimationQuery(model.Target);
+			var estimatedTargetRows = await GetEstimatedRowCount(targetEstimationQuery, model.Target.ConnectionString);
+			var targetFetchQuery = BuildFetchQuery(model.Target, targetColumns);
+			var targetData = await FetchData(targetFetchQuery, model.Target.ConnectionString, targetColumns, model.Transformers, model.Target.PkColumn, estimatedTargetRows);
 			OnLog?.Invoke($"\tA total of {targetData.Data.Count} rows to evaluate", LogType.Info);
 
 			foreach (var check in model.Checks)
@@ -49,7 +60,9 @@ namespace SQLComp
 					if (!check.Check(sourceData.Data[item], target))
 					{
 						any = true;
-						OnCheckFalse?.Invoke($"[S:{item}]" + check.GetDescription(), item, sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap);
+						var issue = new ComparisonIssue($"[{item}]" + check.GetDescription(), item, sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap);
+						result.Issues.Add(issue);
+						OnCheckFalse?.Invoke(issue);
 						break;
 					}
 				}
@@ -66,9 +79,11 @@ namespace SQLComp
 				OnLog?.Invoke("Some data was not equal!", LogType.Error);
 			else
 				OnLog?.Invoke("All data correct!", LogType.Success);
+
+			return result;
 		}
 
-		private string BuildQuery(DatasourceDefinition def, List<string> columns)
+		private string BuildFetchQuery(DatasourceDefinition def, List<string> columns)
 		{
 			var sb = new StringBuilder();
 
@@ -101,15 +116,33 @@ namespace SQLComp
 			return sb.ToString();
 		}
 
-		private async Task<DataModel> ExecuteSQL(string query, string connectionString, List<string> columns, List<ITransformer> transformers, string pkColumn)
+		private string BuildEstimationQuery(DatasourceDefinition def)
 		{
-			var returnData = new DataModel();
+			var sb = new StringBuilder();
 
-			var index = 0;
-			foreach (var col in columns)
-				returnData.ColumnMap.Add(col, index++);
+			sb.Append($"SELECT COUNT(*) FROM {def.Table}");
+			if (def.Where.Count > 0)
+			{
+				sb.AppendLine(" WHERE ");
+				var counter = 1;
+				foreach (var where in def.Where)
+				{
+					sb.Append(where);
+					if (counter++ < def.Where.Count)
+						sb.Append(" AND ");
+				}
+			}
 
-			OnLog?.Invoke("\tExecuting query...", LogType.Info);
+			return sb.ToString();
+		}
+
+		private async Task<uint> GetEstimatedRowCount(string query, string connectionString)
+		{
+			if (FastCheck)
+				return 10;
+
+			uint rows = 0;
+			OnLog?.Invoke("\tGetting row estimation...", LogType.Info);
 			using (var connection = new SqlConnection(connectionString))
 			{
 				var command = new SqlCommand(query, connection)
@@ -118,33 +151,97 @@ namespace SQLComp
 				};
 				connection.Open();
 				var reader = await command.ExecuteReaderAsync();
-				OnLog?.Invoke("\tParsing result...", LogType.Info);
 				while (reader.Read())
 				{
-					string? pkValue = null;
-					var newRow = new string?[columns.Count];
-					for (int i = 0; i < reader.FieldCount; i++)
-					{
-						var name = reader.GetName(i);
-						var data = reader[i];
-						string? dataStr = null;
-						if (data != null)
-							dataStr = data.ToString();
-						foreach (var transformer in transformers)
-							dataStr = transformer.Transform(dataStr);
-
-						if (name == pkColumn)
-							pkValue = dataStr;
-						else
-							newRow[returnData.ColumnMap[name]] = dataStr;
-					}
-					if (pkValue != null)
-						returnData.Data.Add(pkValue, newRow);
+					var value = reader[0]?.ToString();
+					if (value != null)
+						rows = uint.Parse(value);
 				}
 				reader.Close();
 			}
 
-			return returnData;
+			return rows;
+		}
+
+		private async Task<DataModel> FetchData(string query, string connectionString, List<string> columns, List<ITransformer> transformers, string pkColumn, uint estimatedRows)
+		{
+			var returnData = new DataModel();
+
+			var index = 0;
+			foreach (var col in columns)
+				returnData.ColumnMap.Add(col, index++);
+
+			var retryCount = 0;
+			while(retryCount <= FetchRetry)
+			{
+				try
+				{
+					OnLog?.Invoke("\tExecuting query...", LogType.Info);
+					uint rows = 0;
+					var watch = new Stopwatch();
+					watch.Start();
+					using (var connection = new SqlConnection(connectionString))
+					{
+						var command = new SqlCommand(query, connection)
+						{
+							CommandTimeout = 999999
+						};
+						connection.Open();
+						var reader = await command.ExecuteReaderAsync();
+						while (reader.Read())
+						{
+							string? pkValue = null;
+							var newRow = new string?[columns.Count];
+							for (int i = 0; i < reader.FieldCount; i++)
+							{
+								var name = reader.GetName(i);
+								var data = reader[i];
+								string? dataStr = null;
+								if (data != null)
+									dataStr = data.ToString();
+								foreach (var transformer in transformers)
+									dataStr = transformer.Transform(dataStr);
+
+								if (name == pkColumn)
+									pkValue = dataStr;
+								else
+									newRow[returnData.ColumnMap[name]] = dataStr;
+							}
+							if (pkValue != null)
+								returnData.Data.Add(pkValue, newRow);
+							rows++;
+							if (watch.ElapsedMilliseconds > 1000)
+							{
+								OnLog?.Invoke($"\t\tFetched {rows} out of {estimatedRows} rows ({GetPercentage(rows, estimatedRows)})", LogType.Info);
+								watch.Restart();
+							}
+						}
+						reader.Close();
+					}
+
+					return returnData;
+				}
+				catch (Exception ex)
+				{
+					OnLog?.Invoke("\tError during data fetching: " + ex.Message, LogType.Error);
+					if (retryCount + 1 <= FetchRetry)
+					{
+						OnLog?.Invoke($"\tRetrying in 30 seconds ({retryCount + 1} out of {FetchRetry} retries)", LogType.Error);
+						await Task.Delay(TimeSpan.FromSeconds(30));
+					}
+				}
+				retryCount++;
+			}
+			throw new Exception("Could not fetch the data within the retry times!");
+		}
+
+		private string GetPercentage(uint current, uint max)
+		{
+			if (current == 0)
+				return "0%";
+			if (max == 0)
+				return "?%";
+			return $"{Math.Round(((decimal)current / (decimal)max) * 100, 2)}%";
 		}
 	}
 }
