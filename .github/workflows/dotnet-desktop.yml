@@ -32,7 +32,20 @@ jobs:
       - name: Install dependencies
         run: dotnet restore
 
-      - name: Build (Release) and Publish
+      - name: Build (Release) and Publish [SQLComp]
+        run: |  
+          cd SQLComp
+          dotnet nuget add source --username kris701 --password ${{ secrets.API_KEY_GITHUB }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/kris701/index.json"
+          dotnet build --configuration Release
+          dotnet pack --configuration Release
+          cd bin
+          cd Release
+          dotnet nuget push "*.nupkg" --api-key ${{ secrets.API_KEY_GITHUB }} --source "github" --skip-duplicate
+          dotnet nuget push "*.nupkg" --api-key ${{ secrets.API_KEY_NUGET }} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          cd ..
+          cd ..
+
+      - name: Build (Release) and Publish [SQLComp CLI]
         run: |  
           cd SQLComp.CLI
           dotnet nuget add source --username kris701 --password ${{ secrets.API_KEY_GITHUB }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/kris701/index.json"
@@ -45,7 +58,7 @@ jobs:
           cd ..
           cd ..
 
-      - name: Get Package version
+      - name: Get Package version [SQLComp]
         id: get-version
         uses: kzrnm/get-net-sdk-project-versions-action@v1
         with:
@@ -63,5 +76,5 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           skipIfReleaseExists: true
-          artifacts: "SQLComp.CLI/bin/Release/*.nupkg"
+          artifacts: "SQLComp.CLI/bin/Release/*.nupkg,SQLComp/bin/Release/*.nupkg"
           tag: "v${{ steps.get-version.outputs.package-version }}"

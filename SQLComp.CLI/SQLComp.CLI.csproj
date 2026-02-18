@@ -8,7 +8,7 @@
 	  <IsPackable>true</IsPackable>
 	  <PackAsTool>true</PackAsTool>
 	  <ToolCommandName>sqlcomp</ToolCommandName>
-	  <Title>SQLComp</Title>
+	  <Title>SQLComp CLI</Title>
 	  <Authors>Kristian Skov Johansen</Authors>
 	  <Description>Compare tables between two SQL databases.</Description>
 	  <RepositoryUrl>https://github.com/kris701/SQLComp</RepositoryUrl>
@@ -25,7 +25,7 @@
 
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-		<Version>1.0.13</Version>
+		<Version>1.0.14</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
