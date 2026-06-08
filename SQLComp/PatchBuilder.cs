@@ -12,10 +12,8 @@ namespace SQLComp
 	{
 		public List<ITransformer> Transformers { get; set; } = new List<ITransformer>();
 
-		public string Build(ComparisonResult result, TableCompareDefinition def)
+		public void Build(string patchFile, ComparisonResult result, TableCompareDefinition def)
 		{
-			var sb = new StringBuilder();
-
 			foreach(var issue in result.Issues)
 			{
 				if (issue.TargetData == null)
@@ -39,7 +37,7 @@ namespace SQLComp
 					var text = $"INSERT INTO {def.Target.Table} ({string.Join(',', targetColumns)}) VALUES ({string.Join(',', targetValues)})";
 					foreach (var transformer in Transformers)
 						text = transformer.Transform(text);
-					sb.AppendLine(text);
+					File.AppendAllText(patchFile, text);
 				}
 				else
 				{
@@ -59,11 +57,9 @@ namespace SQLComp
 					var text = $"UPDATE {def.Target.Table} SET {string.Join(',', targetValues)} WHERE {def.Target.PkColumn} = '{issue.PK}'";
 					foreach (var transformer in Transformers)
 						text = transformer.Transform(text);
-					sb.AppendLine(text);
+					File.AppendAllText(patchFile, text);
 				}
 			}
-
-			return sb.ToString();
 		}
 	}
 }

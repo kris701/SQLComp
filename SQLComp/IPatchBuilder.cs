@@ -10,6 +10,6 @@ namespace SQLComp
 	public interface IPatchBuilder
 	{
 		public List<ITransformer> Transformers { get; set; }
-		public string Build(ComparisonResult result, TableCompareDefinition def);
+		public void Build(string patchFile, ComparisonResult result, TableCompareDefinition def);
 	}
 }
