@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SQLComp.Models.Results
+﻿namespace SQLComp.Models.Results
 {
 	public class ComparisonIssue
 	{
-		public string PK { get; set; } 
+		public string PK { get; set; }
 		public string?[] SourceData { get; set; }
-		public Dictionary<string, int> SourceColumnMap { get; set; } 
+		public Dictionary<string, int> SourceColumnMap { get; set; }
 		public string?[]? TargetData { get; set; }
 
 		public ComparisonIssue(string pK, string?[] sourceData, Dictionary<string, int> sourceColumnMap, string?[]? targetData)

@@ -1,9 +1,6 @@
 ﻿using SQLComp.Models;
 using SQLComp.Models.Results;
 using SQLComp.Models.Transformers;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SQLComp
 {

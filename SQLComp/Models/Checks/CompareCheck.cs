@@ -14,7 +14,7 @@
 		private int _sourceIndex = -1;
 		private int _targetIndex = -1;
 
-		public void Initialize(Dictionary<string, int> sourceColumnMap, Dictionary<string, int>? targetColumnMap) 
+		public void Initialize(Dictionary<string, int> sourceColumnMap, Dictionary<string, int>? targetColumnMap)
 		{
 			sourceColumnMap.TryGetValue(Source, out _sourceIndex);
 			targetColumnMap?.TryGetValue(Source, out _targetIndex);

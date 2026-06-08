@@ -2,9 +2,6 @@
 using SQLComp.Models.Checks;
 using SQLComp.Models.Results;
 using SQLComp.Models.Transformers;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SQLComp
 {
@@ -14,7 +11,7 @@ namespace SQLComp
 
 		public void Build(string patchFile, ComparisonResult result, TableCompareDefinition def)
 		{
-			foreach(var issue in result.Issues)
+			foreach (var issue in result.Issues)
 			{
 				if (issue.TargetData == null)
 				{

@@ -3,11 +3,8 @@ using CommandLine.Text;
 using SQLComp;
 using SQLComp.CLI;
 using SQLComp.Models;
-using SQLComp.Models.Checks;
 using SQLComp.Models.Transformers;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 
 internal class Program
 {
@@ -42,7 +39,8 @@ internal class Program
 
 		WriteLineColor("Starting compare check on " + opts.TargetPath, LogType.Info);
 
-		var engine = new CompareEngine() { 
+		var engine = new CompareEngine()
+		{
 			FastCheck = opts.DoCheck,
 			FetchRetry = opts.RetryTimes
 		};

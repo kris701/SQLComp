@@ -2,7 +2,6 @@
 using SQLComp.Models;
 using SQLComp.Models.Results;
 using SQLComp.Models.Transformers;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Text;
 
@@ -172,7 +171,7 @@ namespace SQLComp
 				returnData.ColumnMap.Add(col, index++);
 
 			var retryCount = 0;
-			while(retryCount <= FetchRetry)
+			while (retryCount <= FetchRetry)
 			{
 				try
 				{

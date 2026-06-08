@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SQLComp.Models.Results
+﻿namespace SQLComp.Models.Results
 {
 	public class ComparisonResult
 	{
