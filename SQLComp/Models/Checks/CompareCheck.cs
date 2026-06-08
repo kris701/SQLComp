@@ -9,22 +9,21 @@
 		}
 
 		public string Source { get; set; }
+		public int SourceIndex { get; set; }
 		public string Target { get; set; }
+		public int TargetIndex { get; set; }
 
-		private int _sourceIndex = -1;
-		private int _targetIndex = -1;
-
-		public void Initialize(Dictionary<string, int> sourceColumnMap, Dictionary<string, int>? targetColumnMap)
+		public void Initialize(List<string> sourceColumnMap, List<string> targetColumnMap)
 		{
-			sourceColumnMap.TryGetValue(Source, out _sourceIndex);
-			targetColumnMap?.TryGetValue(Source, out _targetIndex);
+			SourceIndex = sourceColumnMap.IndexOf(Source);
+			TargetIndex = targetColumnMap.IndexOf(Target);
 		}
 
 		public bool Check(string?[] sourceData, string?[]? targetData)
 		{
-			if (targetData == null || _targetIndex == -1 || _sourceIndex == -1)
+			if (targetData == null || TargetIndex == -1 || SourceIndex == -1)
 				return false;
-			return sourceData[_sourceIndex] == targetData[_targetIndex];
+			return sourceData[SourceIndex] == targetData[TargetIndex];
 		}
 
 		public string GetDescription() => $"The source column '{Source}' must be equal to '{Target}'";

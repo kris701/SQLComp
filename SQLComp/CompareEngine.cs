@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using SQLComp.Helpers;
 using SQLComp.Models;
 using SQLComp.Models.Results;
 using SQLComp.Models.Transformers;
@@ -15,9 +16,9 @@ namespace SQLComp
 		public bool FastCheck { get; set; } = false;
 		public uint FetchRetry { get; set; } = 0;
 
-		public async Task<ComparisonResult> Compare(TableCompareDefinition model)
+		public async Task<List<ComparisonIssue>> Compare(TableCompareDefinition model)
 		{
-			var result = new ComparisonResult();
+			var result = new List<ComparisonIssue>();
 
 			var sourceColumns = new List<string>();
 			var targetColumns = new List<string>();
@@ -59,8 +60,8 @@ namespace SQLComp
 					if (!check.Check(sourceData.Data[item], target))
 					{
 						any = true;
-						var issue = new ComparisonIssue(item, sourceData.Data[item], sourceData.ColumnMap, target);
-						result.Issues.Add(issue);
+						var issue = new ComparisonIssue(item, sourceData.Data[item], target);
+						result.Add(issue);
 						OnCheckFalse?.Invoke($"[{item}] " + check.GetDescription());
 						break;
 					}
@@ -166,9 +167,8 @@ namespace SQLComp
 		{
 			var returnData = new DataModel();
 
-			var index = 0;
 			foreach (var col in columns)
-				returnData.ColumnMap.Add(col, index++);
+				returnData.ColumnMap.Add(col);
 
 			var retryCount = 0;
 			while (retryCount <= FetchRetry)
@@ -204,14 +204,14 @@ namespace SQLComp
 								if (name == pkColumn)
 									pkValue = dataStr;
 								else
-									newRow[returnData.ColumnMap[name]] = dataStr;
+									newRow[i] = dataStr;
 							}
 							if (pkValue != null)
 								returnData.Data.Add(pkValue, newRow);
 							rows++;
 							if (watch.ElapsedMilliseconds > 1000)
 							{
-								OnLog?.Invoke($"\t\tFetched {rows} out of {estimatedRows} rows ({GetPercentage(rows, estimatedRows)})", LogType.Info);
+								OnLog?.Invoke($"\t\tFetched {rows} out of {estimatedRows} rows ({PercentageHelpers.GetPercentage(rows, estimatedRows)})", LogType.Info);
 								watch.Restart();
 							}
 						}
@@ -232,15 +232,6 @@ namespace SQLComp
 				retryCount++;
 			}
 			throw new Exception("Could not fetch the data within the retry times!");
-		}
-
-		private string GetPercentage(uint current, uint max)
-		{
-			if (current == 0)
-				return "0%";
-			if (max == 0)
-				return "?%";
-			return $"{Math.Round(((decimal)current / (decimal)max) * 100, 2)}%";
 		}
 	}
 }

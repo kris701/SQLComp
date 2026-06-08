@@ -2,7 +2,7 @@
 {
 	public class DataModel
 	{
-		public Dictionary<string, int> ColumnMap { get; set; } = new Dictionary<string, int>();
+		public List<string> ColumnMap { get; set; } = new List<string>();
 		public Dictionary<string, string?[]> Data { get; set; } = new Dictionary<string, string?[]>();
 	}
 }

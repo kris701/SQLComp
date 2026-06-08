@@ -22,6 +22,6 @@ namespace SQLComp
 		public bool FastCheck { get; set; }
 		public uint FetchRetry { get; set; }
 
-		public Task<ComparisonResult> Compare(TableCompareDefinition model);
+		public Task<List<ComparisonIssue>> Compare(TableCompareDefinition model);
 	}
 }
