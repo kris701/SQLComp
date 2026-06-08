@@ -67,7 +67,7 @@ namespace SQLComp
 				}
 				completed++;
 
-				if (completed % 10000 == 0)
+				if (completed % 100000 == 0)
 				{
 					File.AppendAllText(patchFile, sb.ToString());
 					OnLog?.Invoke($"\tWrote {completed} out of {result.Count} ({PercentageHelpers.GetPercentage(completed, result.Count)})", LogType.Info);

@@ -48,9 +48,9 @@ internal class Program
 		var falseCounter = 0;
 		engine.OnCheckFalse += (r) =>
 		{
-			if (falseCounter < 10000 || (falseCounter % 10000 == 0))
+			if (falseCounter < 100000 || (falseCounter % 100000 == 0))
 				WriteLineColor($"\t{r}", LogType.Warning);
-			if (falseCounter == 10000)
+			if (falseCounter == 100000)
 				WriteLineColor($"\tToo many check fails! Only printing every 10000 from now on...", LogType.Warning);
 			falseCounter++;
 		};
