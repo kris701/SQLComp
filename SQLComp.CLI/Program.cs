@@ -47,12 +47,21 @@ internal class Program
 			FetchRetry = opts.RetryTimes
 		};
 		engine.OnLog += (l, t) => WriteLineColor(l, t);
-		engine.OnCheckFalse += (i) => WriteLineColor($"\t{i.Reason}", LogType.Warning);
+		var falseCounter = 0;
+		engine.OnCheckFalse += (r) =>
+		{
+			if (falseCounter < 1000 || (falseCounter % 1000 == 0))
+				WriteLineColor($"\t{r}", LogType.Warning);
+			if (falseCounter == 1000)
+				WriteLineColor($"\tToo many check fails! Only printing every 1000 from now on...", LogType.Warning);
+			falseCounter++;
+		};
 		var result = await engine.Compare(def);
-		var builder = new PatchBuilder() { Transformers = queryTransformers };
-		var patch = builder.Build(result, def);
-		File.AppendAllText(opts.OutputPath, patch);
 		WriteLineColor("Comparison complete!", LogType.Info);
+		WriteLineColor("Writing to patch file...", LogType.Info);
+		var builder = new PatchBuilder() { Transformers = queryTransformers };
+		builder.Build(opts.OutputPath, result, def);
+		WriteLineColor("Patch file complete!", LogType.Info);
 	}
 
 	private static void WriteLineColor(string log, LogType type)

@@ -12,7 +12,7 @@ namespace SQLComp
 	}
 
 	public delegate void OnCompareEngineLogHandler(string logTxt, LogType type);
-	public delegate void OnCompareEngineCheckFalseHandler(ComparisonIssue issue);
+	public delegate void OnCompareEngineCheckFalseHandler(string reason);
 
 	public interface ICompareEngine
 	{

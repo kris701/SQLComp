@@ -60,9 +60,9 @@ namespace SQLComp
 					if (!check.Check(sourceData.Data[item], target))
 					{
 						any = true;
-						var issue = new ComparisonIssue($"[{item}]" + check.GetDescription(), item, sourceData.Data[item], sourceData.ColumnMap, target, targetData.ColumnMap);
+						var issue = new ComparisonIssue(item, sourceData.Data[item], sourceData.ColumnMap, target);
 						result.Issues.Add(issue);
-						OnCheckFalse?.Invoke(issue);
+						OnCheckFalse?.Invoke($"[{item}] " + check.GetDescription());
 						break;
 					}
 				}
@@ -76,9 +76,9 @@ namespace SQLComp
 			watch.Stop();
 			OnLog?.Invoke("Comparison complete!", LogType.Info);
 			if (any)
-				OnLog?.Invoke("Some data was not equal!", LogType.Error);
+				OnLog?.Invoke("\tSome data was not equal!", LogType.Error);
 			else
-				OnLog?.Invoke("All data correct!", LogType.Success);
+				OnLog?.Invoke("\tAll data correct!", LogType.Success);
 
 			return result;
 		}
