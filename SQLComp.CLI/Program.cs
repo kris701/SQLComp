@@ -51,7 +51,7 @@ internal class Program
 			if (falseCounter < 100000 || (falseCounter % 100000 == 0))
 				WriteLineColor($"\t{r}", LogType.Warning);
 			if (falseCounter == 100000)
-				WriteLineColor($"\tToo many check fails! Only printing every 10000 from now on...", LogType.Warning);
+				WriteLineColor($"\tToo many check fails! Only printing every 100000 from now on...", LogType.Warning);
 			falseCounter++;
 		};
 		var result = await engine.Compare(def);
